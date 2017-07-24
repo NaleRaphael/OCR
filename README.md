@@ -9,7 +9,7 @@ A simple demo of OCR using C-sharp.
 
     3. Click `train` button to start trainning
 
-    ![screenshots/OCR_Trainning.gif]
+    ![](screenshots/OCR_Trainning.gif)
 
 * Do inference with noisy inputs
     1. Set percentage of noise to be added
@@ -18,4 +18,4 @@ A simple demo of OCR using C-sharp.
 
     3. Select a input character to be infered
 
-    ![OCR_NoisyInput.gif]
+    ![](screenshots/OCR_NoisyInput.gif)
