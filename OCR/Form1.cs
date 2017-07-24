@@ -32,9 +32,9 @@ namespace OCR
         private Thread _workerThread;
         private int showEpoch = 0;
         private int hiddenLayerNeurons;
-        #endregion Field
+        #endregion
 
-        #region
+        #region Properties
         public double[][] SourceData
         {
             get
@@ -47,7 +47,6 @@ namespace OCR
                 valueChanged = true;
             }
         }
-        
         #endregion
 
         public Form1()
@@ -420,7 +419,8 @@ namespace OCR
                 {
                     for (int j = 0; j < charData[idx][i].Length; j++)
                     {
-                        txt_InputChar.Text += inAry[idx][i*8+j].ToString();
+                        //txt_InputChar.Text += inAry[idx][i*8+j].ToString();
+                        txt_InputChar.Text += inAry[idx][i*8 + j] == 1 ? "■" : "□";
                     }
                     txt_InputChar.Text += "\r\n";
                 }
@@ -549,14 +549,7 @@ namespace OCR
             //       If the type of input data is int or bool, processing time can be reduced.
             for (int i = 0; i < noiseGrainAmount; i++)
             {
-                if (data[idxAry[i]] == 1)
-                {
-                    data[idxAry[i]] = 0;
-                }
-                else if (data[idxAry[i]] == 0)
-                {
-                    data[idxAry[i]] = 1;
-                }
+                data[idxAry[i]] = data[idxAry[i]] == 1 ? 0 : 1;
             }
         }
         private void ShowResult(ref double[] result)
@@ -669,8 +662,5 @@ namespace OCR
             return sum;
         }
         #endregion Private function
-
-
-
     }
 }
