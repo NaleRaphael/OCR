@@ -12,8 +12,6 @@ namespace OCR
     {
         #region Field
         private NeuralNetwork nn;
-        private double[] iAry = { 1,2,3,4 };
-        private double[] oAry = { 4,3,2,1 };
         private double[] inferResult;
         private double[][] sourceData;
         private double[][] inAry;
@@ -22,7 +20,6 @@ namespace OCR
         private List<string> charList;
         private List<string[]> charData;
         private Thread _workerThread;
-        private int hiddenLayerNeurons;
         #endregion
 
         #region Properties
@@ -43,21 +40,6 @@ namespace OCR
         {
             InitializeComponent();
             //SubscribeChangedTxt();
-        }
-
-        private void SetTestData()
-        {
-            int lx = 4;
-            int ly = 4;
-            Random rand = new Random();
-            inAry = new double[lx][];
-            outAry = new double[lx][];
-            for (int i=0;i<lx;i++)
-            {
-                inAry[i] = new double[ly];
-                outAry[i] = new double[ly];
-            }
-            
         }
 
         private void SubscribeChangedTxt()
@@ -190,7 +172,7 @@ namespace OCR
             }
             if (nn != null)
             {
-
+                // TODO: delete this if it's unnecessary
             }
             tssl_Status.Text = "Training...";
 
@@ -244,7 +226,7 @@ namespace OCR
 
             // Show recognition result
             txt_Result.Clear();
-            txt_Result.Text += "Char: " + charList[FindMax(ref inferResult)] + "\r\n";
+            txt_Result.Text += "Char: " + charList[inferResult.ArgMax()] + "\r\n";
             ShowResult(ref inferResult);
 
             // Show network weight
@@ -311,7 +293,6 @@ namespace OCR
                     }
                     txt_InputChar.Text += "\r\n";
                 }
-                    
             }
         }
         #endregion
@@ -365,7 +346,6 @@ namespace OCR
             legend.HorizontalEdgePlacement = Legend.Placement.Inside;
             legend.YOffset = 8;
             plotSurface.Legend = legend;
-            //plotSurface.Legend = "neurons in hidden layer: " + hiddenLayerNeurons.ToString();
             plotSurface.Refresh();
         }
 
@@ -382,7 +362,6 @@ namespace OCR
             {
                 neuronsInEachLayer[i] = Convert.ToInt32(temp[i]);
             }
-            hiddenLayerNeurons = neuronsInEachLayer[1];
 
             // Create error array
             errorAry = new double[epoch];
@@ -391,39 +370,16 @@ namespace OCR
             nn.Train(ref inAry, ref outAry, ref errorAry, epoch, error, etta, alpha);
         }
 
-        private int FindMax(ref double[] inputAry)
-        {
-            if (inputAry.Length == 0)
-            {
-                throw new Exception("Empty input parameter: FindMax()");
-            }
-
-            double tempMax = inputAry[0];
-            int tempMaxIdx = 0;
-            for (int i = 0; i < inputAry.Length; i++)
-            {
-                if (inputAry[i] > tempMax)
-                {
-                    tempMax = inputAry[i];
-                    tempMaxIdx = i;
-                }
-            }
-            return tempMaxIdx;
-        }
-
         private void AddNoise(ref double[] data, double noisePercentage)
         {
             Random rand = new Random();
             int noiseGrainAmount = (int)(noisePercentage*data.Length);
             int[] idxAry = new int[data.Length];
 
-            // Initialize idxAry (enumerate)
-            for (int i = 0; i < idxAry.Length; i++)
-            {
-                idxAry[i] = i;
-            }
+            // Initialization
+            idxAry.Fill(0, idxAry.Length);
 
-            Shuffle(ref idxAry, noiseGrainAmount);
+            idxAry.Shuffle(noiseGrainAmount);
 
             for (int i = 0; i < noiseGrainAmount; i++)
             {
@@ -440,19 +396,17 @@ namespace OCR
             double[] sortedAry = new double[result.Length];
 
             // Initialize index array
-            for (int i = 0; i < sortedIdxAry.Length; i++)
-            {
-                sortedIdxAry[i] = i;
-            }
+            sortedIdxAry.Fill(0, sortedIdxAry.Length);
 
             // Copy array to prevent modifying orignal data
             Array.Copy(result, sortedAry, result.Length);
 
             // Do quick sort
-            QuickSort(ref sortedAry, ref sortedIdxAry, 0, sortedAry.Length - 1);
+            ArrayOps.QuickSort(ref sortedAry, ref sortedIdxAry, 0, sortedAry.Length - 1);
 
             // Get the fisrt several max results
-            sum = Summation(result);
+            sum = result.Sum();
+
             int k = 0;
             double tempSum = 0;
             while (k < 3 || (k < 5 && tempSum <= 0.9))
@@ -468,78 +422,6 @@ namespace OCR
             {
                 txt_Sorted.Text += sortedAry[i].ToString("F6") + "  " + sortedIdxAry[i].ToString() + "\r\n";
             }
-        }
-
-        private void Shuffle(ref int[] inputAry, int length)
-        {
-            // Check
-            if (inputAry == null)
-            {
-                throw new Exception("Input array is null.");
-            }
-            if (length > inputAry.Length)
-            {
-                throw new Exception("The length for shuffling array exceeds the length of inputAry.");
-            }
-
-            Random rand = new Random();
-            for (int i = 0; i < length; i++)
-            {
-                Swap(ref inputAry[i], ref inputAry[rand.Next(i,inputAry.Length)]);
-            }
-        }
-
-        private void Swap(ref int a, ref int b)
-        {
-            int temp;
-            temp = a;
-            a = b;
-            b = temp;
-        }
-
-        private void Swap(ref double a, ref double b)
-        {
-            double temp;
-            temp = a;
-            a = b;
-            b = temp;
-        }
-
-        private int Partition(double[] data, int[] dataIdx, int leftIdx, int rightIdx)
-        {
-            int i = leftIdx - 1;
-            for (int j = leftIdx; j < rightIdx; j++)
-            {
-                if (data[j] > data[rightIdx])
-                {
-                    i++;
-                    Swap(ref data[i], ref data[j]);
-                    Swap(ref dataIdx[i], ref dataIdx[j]);
-                }
-            }
-            Swap(ref data[i + 1], ref data[rightIdx]);
-            Swap(ref dataIdx[i + 1], ref dataIdx[rightIdx]);
-            return i + 1;
-        }
-
-        private void QuickSort(ref double[] data, ref int[] dataIdx, int leftIdx, int rightIdx)
-        {
-            if (leftIdx < rightIdx)
-            {
-                int pivotIdx = Partition(data, dataIdx, leftIdx, rightIdx);
-                QuickSort(ref data, ref dataIdx, leftIdx, pivotIdx - 1);
-                QuickSort(ref data, ref dataIdx, pivotIdx + 1, rightIdx);
-            }
-        }
-
-        private double Summation(double[] inputAry)
-        {
-            double sum = 0;
-            foreach (double d in inputAry)
-            {
-                sum += d;
-            }
-            return sum;
         }
         #endregion
     }
