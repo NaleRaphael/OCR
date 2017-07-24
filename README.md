@@ -2,14 +2,14 @@
 A simple demo of OCR using C-sharp.
 
 ## Usage
-* Trainning
+* Training
     1. Import data from `data\char_mat.txt`
 
-    2. Set parameters for trainning
+    2. Set parameters for training
 
-    3. Click `train` button to start trainning
+    3. Click `train` button to start training
 
-    ![](screenshots/OCR_Trainning.gif)
+    ![](screenshots/OCR_Training.gif)
 
 * Do inference with noisy inputs
     1. Set percentage of noise to be added
