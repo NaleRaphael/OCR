@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using System.IO;
@@ -16,9 +11,6 @@ namespace OCR
     public partial class Form1 : Form
     {
         #region Field
-        private bool firstRun = true;
-        private bool valueChanged = false;
-        private Neuron n;
         private NeuralNetwork nn;
         private double[] iAry = { 1,2,3,4 };
         private double[] oAry = { 4,3,2,1 };
@@ -30,7 +22,6 @@ namespace OCR
         private List<string> charList;
         private List<string[]> charData;
         private Thread _workerThread;
-        private int showEpoch = 0;
         private int hiddenLayerNeurons;
         #endregion
 
@@ -44,7 +35,6 @@ namespace OCR
             set
             {
                 sourceData = value;
-                valueChanged = true;
             }
         }
         #endregion
@@ -69,6 +59,7 @@ namespace OCR
             }
             
         }
+
         private void SubscribeChangedTxt()
         {
             for (int i = 0; i < this.Controls.Count; i++)
@@ -90,36 +81,8 @@ namespace OCR
                 }
             }
         }
-        #region Button
-        private void button1_Click(object sender, EventArgs e)
-        {
-            n = new Neuron();
-            n.Weight = new double[4]{1,2,3,4};
-            foreach (double d in n.Weight)
-            {
-                textBox1.AppendText(d.ToString());
-            }
-        }
-        private void button2_Click(object sender, EventArgs e)
-        {
-            for (int i = 0; i < n.Weight.Length; i++)
-            {
-                n.Weight[i]++;
-            }
-            foreach (double d in n.Weight)
-            {
-                textBox1.AppendText(d.ToString());
-            }
-        }
-        private void btn_Test_Click(object sender, EventArgs e)
-        {
-            _workerThread = new Thread(TrainANN);
-            _workerThread.Start();
-            _workerThread.Join();
 
-            ShowWeight(ref nn);
-            //PlotErrorCurve(nn.ErrorVector);
-        }
+        #region Button
         private void btn_Open_Click(object sender, EventArgs e)
         {
             StreamReader reader = null;
@@ -203,14 +166,6 @@ namespace OCR
             for (int i = 0; i < charList.Count; i++)
             {
                 temp = "";  //reset
-                /*
-                outAry[i] = new double[charList[i].Length];
-                // Note: ASCII: A:65, Z:90
-                for (int j = 0; j < charList[i].Length; j++)
-                {
-                    outAry[i][j] = Convert.ToDouble(((int)charList[i][j]).ToString());
-                }
-                */
                 outAry[i] = new double[26];
                 outAry[i][i] = 1;
             }
@@ -225,57 +180,7 @@ namespace OCR
 
             tssl_Status.Text = "Finished.";
         }
-        private void btn_ReadFile_Click(object sender, EventArgs e)
-        {
-            string filePath = "";
-            List<string> data = new List<string>();
-            charList = new List<string>();
-            charData = new List<string[]>();
-            
-            StreamReader reader;
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.InitialDirectory = @"D:\Users\Nale\Documents\Visual Studio 2012\Projects\OCR\data";
 
-            if (ofd.ShowDialog() == DialogResult.OK)
-            {
-                filePath = ofd.FileName;
-            }
-
-            if (File.Exists(filePath))
-            {
-                reader = new StreamReader(filePath);
-            }
-            else
-            {
-                throw new FileNotFoundException();
-            }
-
-            string temp;
-            string tempData = "";
-            while (!reader.EndOfStream)
-            {
-                temp = reader.ReadLine().Trim();
-                if (temp.Length == 2)
-                {
-                    if (tempData != "")
-                    {
-                        charData.Add(tempData.Substring(0, tempData.Length - 1).Split(','));
-                        tempData = "";  //reset
-                    }
-                    
-                    charList.Add(temp);
-                }
-                else
-                {
-                    tempData += temp + " ";
-                }
-            }
-            // End of file
-            charData.Add(tempData.Substring(0, tempData.Length - 1).Split(' '));
-            reader.Close();
-
-            string hexCode;
-        }
         private void btn_Train_Click(object sender, EventArgs e)
         {
             if (inAry == null)
@@ -297,6 +202,7 @@ namespace OCR
             tssl_Status.Text = "Training is done.";
             
         }
+
         private void btn_DeleteCurve_Click(object sender, EventArgs e)
         {
             if (plotSurface.Drawables.Count == 0)
@@ -310,6 +216,7 @@ namespace OCR
                 plotSurface.Refresh();
             }
         }
+
         private void btn_Infer_Click(object sender, EventArgs e)
         {
             // Check that neural network has been created
@@ -339,21 +246,6 @@ namespace OCR
             txt_Result.Clear();
             txt_Result.Text += "Char: " + charList[FindMax(ref inferResult)] + "\r\n";
             ShowResult(ref inferResult);
-            /*double[] temp = new double[3];
-            double[] sortedAry = new double[inferResult.Length];
-            int[] sortedIdxAry = new int[inferResult.Length];
-            for (int i = 0; i < sortedIdxAry.Length; i++)
-            {
-                sortedIdxAry[i] = i;
-            }
-            Array.Copy(inferResult, sortedAry, inferResult.Length);
-            QuickSort(ref sortedAry, ref sortedIdxAry, 0, sortedAry.Length-1);
-            txt_Sorted.Clear();
-            for (int i = 0; i < sortedAry.Length; i++)
-            {
-                txt_Sorted.Text += sortedAry[i].ToString("F6") + "  " + sortedIdxAry[i].ToString() + "\r\n";
-            }*/
-
 
             // Show network weight
             txt_NetworkOutput.Clear();
@@ -362,6 +254,7 @@ namespace OCR
                 txt_NetworkOutput.Text += inferResult[i].ToString("F6") + "\r\n";
             }
         }
+
         private void btn_AddNoise_Click(object sender, EventArgs e)
         {
             if (txt_NoisePercentage.Text == "")
@@ -400,7 +293,7 @@ namespace OCR
             cmb_InputChar.SelectedIndex = -1;
             tssl_Status.Text = "Noise has been added in charData.";
         }
-        #endregion Button
+        #endregion
 
         #region Other controls
         private void cmb_InputChar_SelectedIndexChanged(object sender, EventArgs e)
@@ -409,17 +302,11 @@ namespace OCR
             int idx;
             if (cmb_InputChar.SelectedIndex != -1)
             {
-                /*
-                for (int i = 0; i < charData[cmb_InputChar.SelectedIndex].Length; i++)
-                {
-                    txt_InputChar.Text += charData[cmb_InputChar.SelectedIndex][i] + "\r\n";
-                }*/
                 idx = cmb_InputChar.SelectedIndex;
                 for (int i = 0; i < charData[idx].Length; i++)
                 {
                     for (int j = 0; j < charData[idx][i].Length; j++)
                     {
-                        //txt_InputChar.Text += inAry[idx][i*8+j].ToString();
                         txt_InputChar.Text += inAry[idx][i*8 + j] == 1 ? "■" : "□";
                     }
                     txt_InputChar.Text += "\r\n";
@@ -427,18 +314,9 @@ namespace OCR
                     
             }
         }
-        #endregion Other controls
+        #endregion
 
         #region Private function
-        private void TrainANN()
-        {
-            int epoch = 200;
-            double error = 0.2;
-            double etta = 0.8;
-            double alpha = 0.8;
-            nn = new NeuralNetwork(4, 6, 4);
-            //nn.Train(epoch, error, etta, alpha);
-        }
         private void ShowWeight(ref NeuralNetwork nn)
         {
             txt_Weight.Clear();
@@ -462,7 +340,7 @@ namespace OCR
                 txt_Weight.Text += "\r\n";
             }
         }
-        // Plot training error on plotSurface.
+
         private void PlotErrorCurve(double[] errorVector)
         {
             double[] x = new double[errorVector.Length];
@@ -490,6 +368,7 @@ namespace OCR
             //plotSurface.Legend = "neurons in hidden layer: " + hiddenLayerNeurons.ToString();
             plotSurface.Refresh();
         }
+
         private void StartTraining()
         {
             int epoch = Convert.ToInt32(txt_Epoch.Text);
@@ -511,6 +390,7 @@ namespace OCR
             nn = new NeuralNetwork(neuronsInEachLayer);
             nn.Train(ref inAry, ref outAry, ref errorAry, epoch, error, etta, alpha);
         }
+
         private int FindMax(ref double[] inputAry)
         {
             if (inputAry.Length == 0)
@@ -530,6 +410,7 @@ namespace OCR
             }
             return tempMaxIdx;
         }
+
         private void AddNoise(ref double[] data, double noisePercentage)
         {
             Random rand = new Random();
@@ -544,14 +425,12 @@ namespace OCR
 
             Shuffle(ref idxAry, noiseGrainAmount);
 
-            // Invert elemets (1->0, 0->1)
-            // Note: This method can be improvement.
-            //       If the type of input data is int or bool, processing time can be reduced.
             for (int i = 0; i < noiseGrainAmount; i++)
             {
                 data[idxAry[i]] = data[idxAry[i]] == 1 ? 0 : 1;
             }
         }
+
         private void ShowResult(ref double[] result)
         {
             
@@ -559,6 +438,7 @@ namespace OCR
             double sum = 0;
             double[] temp = new double[3];
             double[] sortedAry = new double[result.Length];
+
             // Initialize index array
             for (int i = 0; i < sortedIdxAry.Length; i++)
             {
@@ -581,12 +461,6 @@ namespace OCR
                 tempSum += sortedAry[k] / sum;
                 k++;
             }
-            /*
-            for (int i = 0; i < firstMaxAmount; i++)
-            {
-                txt_Result.Text += charList[sortedIdxAry[i]] + ": " + (sortedAry[i] / sum * 100).ToString("F4") + "%\r\n";
-            }
-            */
 
             // Show result
             txt_Sorted.Clear();
@@ -595,6 +469,7 @@ namespace OCR
                 txt_Sorted.Text += sortedAry[i].ToString("F6") + "  " + sortedIdxAry[i].ToString() + "\r\n";
             }
         }
+
         private void Shuffle(ref int[] inputAry, int length)
         {
             // Check
@@ -613,6 +488,7 @@ namespace OCR
                 Swap(ref inputAry[i], ref inputAry[rand.Next(i,inputAry.Length)]);
             }
         }
+
         private void Swap(ref int a, ref int b)
         {
             int temp;
@@ -620,6 +496,7 @@ namespace OCR
             a = b;
             b = temp;
         }
+
         private void Swap(ref double a, ref double b)
         {
             double temp;
@@ -627,6 +504,7 @@ namespace OCR
             a = b;
             b = temp;
         }
+
         private int Partition(double[] data, int[] dataIdx, int leftIdx, int rightIdx)
         {
             int i = leftIdx - 1;
@@ -643,6 +521,7 @@ namespace OCR
             Swap(ref dataIdx[i + 1], ref dataIdx[rightIdx]);
             return i + 1;
         }
+
         private void QuickSort(ref double[] data, ref int[] dataIdx, int leftIdx, int rightIdx)
         {
             if (leftIdx < rightIdx)
@@ -652,6 +531,7 @@ namespace OCR
                 QuickSort(ref data, ref dataIdx, pivotIdx + 1, rightIdx);
             }
         }
+
         private double Summation(double[] inputAry)
         {
             double sum = 0;
@@ -661,6 +541,6 @@ namespace OCR
             }
             return sum;
         }
-        #endregion Private function
+        #endregion
     }
 }
