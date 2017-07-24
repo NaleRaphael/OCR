@@ -293,6 +293,10 @@ namespace OCR
                     }
                     txt_InputChar.Text += "\r\n";
                 }
+
+                // Auto-inference
+                if (chk_AutoInfer.Checked && nn != null)
+                    btn_Infer_Click(null, null);
             }
         }
         #endregion
@@ -389,7 +393,6 @@ namespace OCR
 
         private void ShowResult(ref double[] result)
         {
-            
             int[] sortedIdxAry = new int[result.Length];
             double sum = 0;
             double[] temp = new double[3];
@@ -404,9 +407,8 @@ namespace OCR
             // Do quick sort
             ArrayOps.QuickSort(ref sortedAry, ref sortedIdxAry, 0, sortedAry.Length - 1);
 
-            // Get the fisrt several max results
+            // Show the fisrt several maximum (format: `character: probability`)
             sum = result.Sum();
-
             int k = 0;
             double tempSum = 0;
             while (k < 3 || (k < 5 && tempSum <= 0.9))
@@ -415,14 +417,15 @@ namespace OCR
                 tempSum += sortedAry[k] / sum;
                 k++;
             }
-
-            // Show result
-            txt_Sorted.Clear();
-            for (int i = 0; i < sortedAry.Length; i++)
-            {
-                txt_Sorted.Text += sortedAry[i].ToString("F6") + "  " + sortedIdxAry[i].ToString() + "\r\n";
-            }
         }
         #endregion
+
+        private void btn_ShowWeight_Click(object sender, EventArgs e)
+        {
+            if (nn == null)
+                return;
+
+            ShowWeight(ref nn);
+        }
     }
 }
