@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            NPlot.Windows.PlotSurface2D.PlotContextMenu plotContextMenu7 = new NPlot.Windows.PlotSurface2D.PlotContextMenu();
+            NPlot.Windows.PlotSurface2D.PlotContextMenu plotContextMenu10 = new NPlot.Windows.PlotSurface2D.PlotContextMenu();
             this.txt_Weight = new System.Windows.Forms.TextBox();
             this.grp_Setting = new System.Windows.Forms.GroupBox();
             this.txt_Error = new System.Windows.Forms.TextBox();
@@ -283,7 +283,7 @@
             this.plotSurface.LegendZOrder = -1;
             this.plotSurface.Location = new System.Drawing.Point(411, 199);
             this.plotSurface.Name = "plotSurface";
-            this.plotSurface.RightMenu = plotContextMenu7;
+            this.plotSurface.RightMenu = plotContextMenu10;
             this.plotSurface.ShowCoordinates = true;
             this.plotSurface.Size = new System.Drawing.Size(445, 274);
             this.plotSurface.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
@@ -454,6 +454,7 @@
             this.Controls.Add(this.txt_Result);
             this.Controls.Add(this.txt_InputChar);
             this.Controls.Add(this.grp_Setting);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "Form1";
             this.Text = "Form1";
             this.grp_Setting.ResumeLayout(false);
